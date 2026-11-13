@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14532d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Garden Club Dominator</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Garden Club Dominator</h1>
+    <p class="subtitle">Yendy's competition for "Gardener of the Month"!</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span id="coins">0</span>
+        <span class="label">coins</span>
+      </div>
+      <div class="stat" id="time-scale">
+        <button data-scale="1">1×</button>
+        <button data-scale="2">2×</button>
+        <button data-scale="5">5×</button>
+        <button data-scale="10">10×</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="garden">Garden</button>
+      <button class="tab" data-tab="upgrades" id="upgrades-tab-btn">Upgrades <span id="upgrades-dot" class="red-dot" style="display:none;"></span></button>
+    </div>
+
+    <div id="garden-tab" class="tab-content">
+      <div id="plots"></div>
+      <div class="section">
+        <h2>Market: Rickety Roadside Stand</h2>
+        <div id="market-upgrades" style="margin-top:0.75rem;"></div>
+        <p id="market-info">Sell buttons are per-veggie for now</p>
+        <button type="button" id="price-list-toggle" class="tool-btn">Price list</button>
+        <div id="price-list" class="price-list" style="display:none"></div>
+      </div>
+    </div>
+
+    <div id="upgrades-tab" class="tab-content" style="display:none;">
+      <div class="subtabs">
+        <button class="subtab active" data-subtab="helpful">Helpful Neighbors <span id="helpful-dot" class="red-dot" style="display:none;"></span></button>
+        <button class="subtab" data-subtab="generous">Generous Neighbors <span id="generous-dot" class="red-dot" style="display:none;"></span></button>
+        <button class="subtab" data-subtab="supportive">Supportive Neighbors <span id="supportive-dot" class="red-dot" style="display:none;"></span></button>
+      </div>
+      <button type="button" id="upgrade-autobuy" class="tool-btn" style="display:none">Upgrade autobuy: on</button>
+      <div id="helpful-panel" class="subpanel">
+        <button type="button" id="hide-owned" class="tool-btn">Hide owned</button>
+        <div id="helpful-list"></div>
+      </div>
+      <div id="generous-panel" class="subpanel" style="display:none;">
+        <div id="generous-list"></div>
+      </div>
+      <div id="market-panel" class="subpanel" style="display:none;">
+        <div id="market-list"></div>
+      </div>
+      <div id="supportive-panel" class="subpanel" style="display:none;">
+        <div id="supportive-list"></div>
+        <p>Supportive Neighbors: <span id="supportive">0.00</span></p>
+        <p>Trophies: <span id="trophies">0</span></p>
+        <p>The first prestige unlocks at 2 tomato plants.</p>
+        <button type="button" id="prestige-btn" class="prestige" disabled>Prestige</button>
+        <p id="prestige-info">Better Soil (2× harvest) available with first trophy</p>
+        <p id="run-trophies" class="small"></p>
+        <div id="bylaws" style="display:none">
+          <label class="small">Minimum trophies
+            <input id="auto-min" type="number" min="1" value="4">
+          </label>
+          <label class="small"><input id="wait-upgrade" type="checkbox"> Wait until the next upgrade is affordable</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
