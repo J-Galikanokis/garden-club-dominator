@@ -24,6 +24,52 @@ const NEIGHBORS = {
   tomatoes:  { harvest: "Master Gardener",         sell: "Tomato Tycoon",        speed: "Heirloom Hyper-Growth Formula", buy: "Tomato Treasurer" },
 };
 
+const ART = {
+  kale: "art-kale.jpg",
+  spinach: "art-spinach.jpg",
+  beets: "art-beets.jpg",
+  chard: "art-chard.jpg",
+  radishes: "art-radish.jpg",
+  carrots: "art-carrot.jpg",
+  broccoli: "yendy-broccoli.jpg",
+  peppers: "art-pepper.jpg",
+  tomatoes: "art-tomato.jpg",
+};
+
+const NEIGHBOR_ART = {
+  "Eager Neighbor Kid": "art-neighbor-eager-kid.jpg",
+  "Kid with a Wagon": "art-neighbor-wagon.jpg",
+  "Allowance Kid": "art-neighbor-allowance.jpg",
+  "Garden Club Volunteer": "art-neighbor-volunteer.jpg",
+  "Stand Helper": "art-neighbor-stand-helper.jpg",
+  "Coupon Clipper": "art-neighbor-coupon.jpg",
+  "Backyard Botanist": "art-neighbor-botanist.jpg",
+  "Market Runner": "art-neighbor-market-runner.jpg",
+  "Bargain Botanist": "art-neighbor-bargain.jpg",
+  "Retired Horticulturist": "art-neighbor-horticulturist.jpg",
+  "Chard Courier": "art-neighbor-courier.jpg",
+  "Cart Filler": "art-neighbor-cart.jpg",
+  "Weekend Weeder": "art-neighbor-weeder.jpg",
+  "Radish Runner": "art-neighbor-radish-runner.jpg",
+  "Row Shopper": "art-neighbor-row-shopper.jpg",
+  "Carrot Enthusiast": "art-neighbor-enthusiast.jpg",
+  "Produce Porter": "art-neighbor-porter.jpg",
+  "Carrot Quartermaster": "art-neighbor-quartermaster.jpg",
+  "Club Secretary": "art-neighbor-secretary.jpg",
+  "Broccoli Broker": "art-neighbor-broker.jpg",
+  "Club Bookkeeper": "art-neighbor-bookkeeper.jpg",
+  "Pepper Pro": "art-neighbor-pepper-pro.jpg",
+  "Pepper Packer": "art-neighbor-packer.jpg",
+  "Pepper Purchaser": "art-neighbor-purchaser.jpg",
+  "Master Gardener": "art-neighbor-master.jpg",
+  "Tomato Tycoon": "art-neighbor-tycoon.jpg",
+  "Tomato Treasurer": "art-neighbor-treasurer.jpg",
+};
+
+function portrait(src) {
+  return src ? `<img class="portrait" src="${src}" alt="">` : "";
+}
+
 const PRESTIGE_UPS = [
   { id: "betterSoil", name: "Better Soil", cost: 1, desc: "×2 base harvest amount" },
   { id: "enrichedCompost", name: "Enriched Compost", cost: 1, desc: "×1.5 base cycle speed" },
@@ -40,14 +86,18 @@ const PRESTIGE_UPS = [
 ];
 
 const MARKET_UPS = [
-  { id: "farmersMarket", key: "farmers-market", name: "Farmers Market Stand", cost: 1e8, plants: 1, mult: 1.5, blurb: "+50% sell price for every veggie" },
-  { id: "coopCooler", key: "coop-cooler", name: "Co-op Cooler", cost: 5e9, plants: 25, mult: 1.5, blurb: "+50% sell price for every veggie" },
-  { id: "wholesaleDock", key: "wholesale-dock", name: "Wholesale Dock", cost: 2.5e11, plants: 100, mult: 2, blurb: "×2 sell price for every veggie" },
-  { id: "distributionHub", key: "distribution-hub", name: "Distribution Hub", cost: 1e13, plants: 250, mult: 2, blurb: "×2 sell price for every veggie" },
+  { id: "farmersMarket", key: "farmers-market", name: "Farmers Market Stand", cost: 1e6, gate: "beets", need: "Needs Beets", mult: 1.5, blurb: "+50% sell price for every veggie" },
+  { id: "coopCooler", key: "coop-cooler", name: "Co-op Cooler", cost: 1e9, gate: "carrots", need: "Needs Carrots", mult: 1.5, blurb: "+50% sell price for every veggie" },
+  { id: "wholesaleDock", key: "wholesale-dock", name: "Wholesale Dock", cost: 1e12, gate: "tomatoes", need: "Needs Heirloom Tomatoes", mult: 2, blurb: "×2 sell price for every veggie" },
+  { id: "distributionHub", key: "distribution-hub", name: "Distribution Hub", cost: 1e15, gate: "prestige", need: "Needs 5 prestiges", mult: 2, blurb: "×2 sell price for every veggie" },
 ];
 
 function buyNeighborCost(v) {
   return Math.floor(v.firstCost * 100);
+}
+
+function trophyLabel(n) {
+  return `${n} ${n === 1 ? "trophy" : "trophies"}`;
 }
 
 function trophiesThisRun() {
@@ -80,6 +130,7 @@ function showFirstPrestige() {
 }
 
 function showYendy() {
+  state.yendySpeed = true;
   if (document.getElementById("yendy-overlay")) return;
   state.celebrating = true;
   const overlay = document.createElement("div");
@@ -87,7 +138,7 @@ function showYendy() {
   overlay.innerHTML = `
     <div class="yendy-card">
       <img src="yendy-broccoli.jpg" alt="" class="yendy-broccoli">
-      <div class="yendy-sign">Yendy's Special Reward!!</div>
+      <div class="yendy-sign">Yendy's Special Reward!!<span>+50% speed for every veggie</span></div>
     </div>`;
   document.body.appendChild(overlay);
   setTimeout(() => {
@@ -146,8 +197,9 @@ function maybeAutoPrestige() {
 }
 
 function marketReady(m) {
-  const tomatoes = VEGGIES.find(v => v.id === "tomatoes");
-  return !!(tomatoes?.unlocked && state.plots.tomatoes.plants >= m.plants);
+  if (m.gate === "prestige") return state.prestigeCount >= 5;
+  const veg = VEGGIES.find(v => v.id === m.gate);
+  return !!veg?.unlocked;
 }
 
 const state = {
@@ -183,6 +235,8 @@ const state = {
   prestigeSeen: false,
   firstNeighborAwarded: false,
   seenFirstPrestige: false,
+  prestigeCount: 0,
+  yendySpeed: false,
   betterSoil: 1,
   buyMode: 1, // legacy, now per-plot
   globalSpeed: 1,
@@ -239,11 +293,22 @@ function format(n) {
   return sign + scaled.toFixed(1) + suffixes[tier];
 }
 
-function formatTime(seconds) {
-  if (seconds <= 0) return "0:00.00";
-  const m = Math.floor(seconds / 60);
-  const s = (seconds % 60).toFixed(2);
-  return `${m}:${s.padStart(5, "0")}`;
+function formatHarvestRate(perSec) {
+  if (!isFinite(perSec) || perSec <= 0) return "0/s";
+  if (perSec >= 1) {
+    const n = perSec >= 100 ? Math.round(perSec) : perSec >= 10 ? perSec.toFixed(1) : perSec.toFixed(2);
+    return `${n}/s`;
+  }
+  let value = 1 / perSec;
+  let label = "s";
+  const ladder = [[60, "s", "min"], [60, "min", "hour"], [24, "hour", "day"], [7, "day", "week"], [52, "week", "year"]];
+  for (const [size, from, to] of ladder) {
+    if (label !== from || value < size) break;
+    value /= size;
+    label = to;
+  }
+  const n = value >= 10 ? value.toFixed(1) : value.toFixed(2);
+  return `1 / ${n}${label}`;
 }
 
 function getSellPrice(veggie) {
@@ -277,7 +342,8 @@ function getCycleTime(veggie, plot) {
     globalMult = state.globalSpeed;
   }
   const compost = state.prestigeUpgrades.enrichedCompost ? 1.5 : 1;
-  const speedMult = (1 + plot.speedLevels * 0.10) * globalMult * plantSpeed * compost;
+  const yendy = state.yendySpeed ? 1.5 : 1;
+  const speedMult = (1 + plot.speedLevels * 0.10) * globalMult * plantSpeed * compost * yendy;
   return veggie.baseCycle * Math.pow(0.90, batches) / speedMult;
 }
 
@@ -349,7 +415,7 @@ function updateUI() {
 
       div.innerHTML = `
         <div class="plot-head">
-          <h3 class="plot-name">${v.name}</h3>
+          <h3 class="plot-name">${portrait(ART[v.id])}<span>${v.name}</span></h3>
           <button type="button" class="info-btn" data-info="${v.id}" aria-label="Upgrades for ${v.name}">i</button>
           <span class="plant-count"></span>
         </div>
@@ -379,7 +445,7 @@ function updateUI() {
         const div = document.createElement("div");
         div.className = "plot";
         div.innerHTML = `
-          <h3>${nextLocked.name} (Locked)</h3>
+          <h3 class="plot-name">${portrait(ART[nextLocked.id])}<span>${nextLocked.name} (Locked)</span></h3>
           <p class="small">Unlocks at ${nextLocked.unlockPlants} ${prev.name} plants · First plant: ${format(nextLocked.firstCost)} c</p>
           <button class="buy" data-unlock="${nextLocked.id}" ${canUnlock ? "" : "disabled"}>
             Unlock (${format(nextLocked.firstCost)} c)
@@ -411,16 +477,15 @@ function updateUI() {
     const plantCount = div.querySelector(".plant-count");
 
     if (bar) {
-      bar.style.width = (plot.hasStarted && cycle < 0.01) ? "100%" : Math.min(100, plot.progress * 100) + "%";
+      const perSec = cycle > 0 ? yieldAmt / cycle : 0;
+      const fast = plot.hasStarted && perSec >= 10;
+      bar.style.width = fast ? "100%" : Math.min(100, plot.progress * 100) + "%";
     }
     if (text) {
-      const perMinute = (yieldAmt / cycle) * 60;
-      const usePerSec = perMinute > 1000;
-      const rate = usePerSec ? (perMinute / 60).toFixed(1) + "/s" : perMinute.toFixed(1) + "/min";
+      const perSec = cycle > 0 ? yieldAmt / cycle : 0;
       if (!plot.hasStarted) text.textContent = "Ready to plant";
       else if (plot.ready && !plot.autoHarvest) text.textContent = "Ready!";
-      else if (cycle < 0.01) text.textContent = rate;
-      else text.textContent = formatTime(remaining);
+      else text.textContent = formatHarvestRate(perSec);
     }
     if (actionBtn) {
       actionBtn.textContent = !plot.hasStarted ? "Plant" : "Harvest";
@@ -523,35 +588,44 @@ function updateUI() {
 
       if (plot.plants >= 1 && !(state.hideOwnedHelpful && up.harvest)) {
         helpfulHTML += `
-          <div class="upgrade-card" data-upgrade="harvest-${v.id}">
+          <div class="upgrade-card card-with-art" data-upgrade="harvest-${v.id}">
+            ${portrait(NEIGHBOR_ART[names.harvest])}
+            <div>
             <strong>${names.harvest}</strong> ${!up.harvest && state.coins >= harvestCost ? '<span class="red-dot"></span>' : ''}
             <p class="small">Auto-harvests ${v.name}</p>
             <button type="button" class="buy" data-upgrade="harvest-${v.id}" data-cost="${harvestCost}" data-owned="${up.harvest ? "1" : "0"}">
               ${up.harvest ? "Owned" : `Buy (${format(harvestCost)} c)`}
             </button>
+            </div>
           </div>`;
       }
 
       if (plot.plants >= 10 && !(state.hideOwnedHelpful && up.sell)) {
         helpfulHTML += `
-          <div class="upgrade-card" data-upgrade="sell-${v.id}">
+          <div class="upgrade-card card-with-art" data-upgrade="sell-${v.id}">
+            ${portrait(NEIGHBOR_ART[names.sell])}
+            <div>
             <strong>${names.sell}</strong> ${!up.sell && state.coins >= sellCost ? '<span class="red-dot"></span>' : ''}
             <p class="small">Auto-sells ${v.name}</p>
             <button type="button" class="buy" data-upgrade="sell-${v.id}" data-cost="${sellCost}" data-owned="${up.sell ? "1" : "0"}">
               ${up.sell ? "Owned" : `Buy (${format(sellCost)} c)`}
             </button>
+            </div>
           </div>`;
       }
 
       if (state.prestigeUpgrades.shoppingList && up.harvest && !(state.hideOwnedHelpful && up.buy)) {
         const cost = buyNeighborCost(v);
         helpfulHTML += `
-          <div class="upgrade-card" data-upgrade="buy-${v.id}">
+          <div class="upgrade-card card-with-art" data-upgrade="buy-${v.id}">
+            ${portrait(NEIGHBOR_ART[names.buy])}
+            <div>
             <strong>${names.buy}</strong> ${!up.buy && state.coins >= cost ? '<span class="red-dot"></span>' : ''}
             <p class="small">Auto-buys ${v.name} plants</p>
             <button type="button" class="buy" data-upgrade="buy-${v.id}" data-cost="${cost}" data-owned="${up.buy ? "1" : "0"}">
               ${up.buy ? "Owned" : `Buy (${format(cost)} c)`}
             </button>
+            </div>
           </div>`;
       }
 
@@ -559,12 +633,15 @@ function updateUI() {
       if (availableSpeed > up.speedBought) {
         const cost = Math.floor(baseSpeedCost * Math.pow(1.5, up.speedBought));
         generousHTML += `
-          <div class="upgrade-card" data-upgrade="speed-${v.id}">
+          <div class="upgrade-card card-with-art" data-upgrade="speed-${v.id}">
+            ${portrait(ART[v.id])}
+            <div>
             <strong>${names.speed} ${up.speedBought + 1}</strong> ${state.coins >= cost ? '<span class="red-dot"></span>' : ''}
             <p class="small">+10% speed for ${v.name}</p>
             <button type="button" class="buy" data-upgrade="speed-${v.id}" data-cost="${cost}" data-owned="0">
               Buy Lvl ${up.speedBought + 1} (${format(cost)} c)
             </button>
+            </div>
           </div>`;
       }
     });
@@ -586,21 +663,23 @@ function updateUI() {
     generousList.innerHTML = generousHTML || "<p class='small'>Grow plants to unlock speed upgrades.</p>";
   }
 
-  const marketKey = MARKET_UPS.map(m => `${m.id}:${m.cost}:${marketReady(m)}:${state.plots.tomatoes.plants}:${state.marketUpgrades[m.id]}`).join("|");
+  const marketKey = MARKET_UPS.map(m => `${m.id}:${marketReady(m)}:${state.marketUpgrades[m.id]}:${state.prestigeCount}`).join("|");
   const marketUpgradesEl = document.getElementById("market-upgrades");
   if (marketUpgradesEl && marketKey !== marketUpgradesEl.dataset.key) {
     marketUpgradesEl.dataset.key = marketKey;
     marketUpgradesEl.innerHTML = MARKET_UPS.map(m => {
       const unlocked = marketReady(m);
       const owned = state.marketUpgrades[m.id];
-      const lockText = m.plants <= 1 ? "Unlocks with Heirloom Tomatoes" : `Unlocks at ${m.plants} Heirloom Tomato plants`;
       return `
-      <div class="upgrade-card" data-upgrade="${m.key}">
+      <div class="upgrade-card card-with-art" data-upgrade="${m.key}">
+        ${portrait("art-market.jpg")}
+        <div>
         <strong>${m.name}</strong>
-        <p class="small">${m.blurb}</p>
-        <button type="button" class="buy" data-upgrade="${m.key}" data-cost="${m.cost}" data-owned="${owned ? "1" : "0"}" ${unlocked ? "" : "data-locked=\"1\""}>
-          ${owned ? "Owned" : unlocked ? `Buy (${format(m.cost)} c)` : lockText}
+        <p class="small">${m.blurb}${unlocked || owned ? "" : ` · ${m.need}`}</p>
+        <button type="button" class="buy" data-upgrade="${m.key}" data-cost="${m.cost}" data-owned="${owned ? "1" : "0"}" ${unlocked ? "" : "disabled data-locked=\"1\""}>
+          ${owned ? "Owned" : `Purchase (${format(m.cost)} c)`}
         </button>
+        </div>
       </div>`;
     }).join("");
   }
@@ -619,7 +698,7 @@ function updateUI() {
           <strong>${p.name}</strong>
           <p class="small">${p.desc}</p>
           <button type="button" class="buy" data-upgrade="prestige-${p.id}" data-cost="${p.cost}" data-currency="trophies" data-owned="${owned ? "1" : "0"}">
-            ${owned ? "Owned" : `Buy (${p.cost} trophy${p.cost === 1 ? "" : "s"})`}
+            ${owned ? "Owned" : `Buy (${trophyLabel(p.cost)})`}
           </button>
         </div>`;
       }).join("");
@@ -643,11 +722,22 @@ function updateUI() {
     ? "Harvests add Supportive Neighbors at ×10 (yield × sell price / 30,000)."
     : "Harvests add Supportive Neighbors (yield × sell price / 300,000).";
   if (canPrestige) {
-    prestigeInfo.textContent = `Prestige available. This run is worth ${trophiesThisRun()} trophies. ${state.firstNeighborAwarded ? accrualNote : ""}`;
+    prestigeInfo.textContent = `Prestige available. This run is worth ${trophyLabel(trophiesThisRun())}. ${state.firstNeighborAwarded ? accrualNote : ""}`;
   } else if (state.firstNeighborAwarded) {
     prestigeInfo.textContent = accrualNote;
   } else {
     prestigeInfo.textContent = "The first Supportive Neighbor arrives when you buy your second tomato plant.";
+  }
+  const firstPrestigeReady = canPrestige && !state.seenFirstPrestige;
+  const banner = document.getElementById("prestige-banner");
+  if (banner) banner.style.display = firstPrestigeReady ? "block" : "none";
+  if (firstPrestigeReady) {
+    const tabBtn = document.getElementById("upgrades-tab-btn");
+    const supportiveDot = document.getElementById("supportive-dot");
+    if (tabBtn) tabBtn.classList.add("has-upgrade");
+    if (supportiveDot) supportiveDot.style.display = "inline-block";
+    const upgradesDot = document.getElementById("upgrades-dot");
+    if (upgradesDot) upgradesDot.style.display = "inline-block";
   }
 
   const hideBtn = document.getElementById("hide-owned");
@@ -671,7 +761,7 @@ function updateUI() {
   if (runTrophies) {
     const earned = trophiesThisRun();
     runTrophies.textContent = state.prestigeUpgrades.monthlyMeeting
-      ? `This run is worth ${earned} trophy${earned === 1 ? "" : "s"}.`
+      ? `This run is worth ${trophyLabel(earned)}.`
       : "";
   }
 }
@@ -781,6 +871,7 @@ function prestige() {
   if (state.supportive < 1) return;
   const firstTime = !state.seenFirstPrestige;
   state.seenFirstPrestige = true;
+  state.prestigeCount += 1;
   state.trophies += trophiesThisRun();
   state.coins = 0;
   state.supportive = 0;
@@ -824,6 +915,7 @@ function prestige() {
   if (marketEl) marketEl.dataset.key = "";
   lastUpgradeState = "";
   if (firstTime) showFirstPrestige();
+  saveGame();
   updateUI();
 }
 
@@ -969,8 +1061,10 @@ document.addEventListener("click", (e) => {
 });
 
 let last = performance.now();
+let saveAcc = 0;
 function loop(now) {
-  const dt = ((now - last) / 1000) * (state.timeScale || 1);
+  const realDt = (now - last) / 1000;
+  const dt = realDt * (state.timeScale || 1);
   last = now;
 
   VEGGIES.forEach(v => {
@@ -1032,20 +1126,26 @@ function loop(now) {
   maybeAutoPrestige();
 
   updateUI();
+  saveAcc += realDt;
+  if (saveAcc >= 2) {
+    saveAcc = 0;
+    saveGame();
+  }
   requestAnimationFrame(loop);
 }
 
-document.getElementById("test-celebration")?.addEventListener("click", () => {
-  const overlay = document.createElement("div");
-  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:9999;pointer-events:none;";
-  overlay.innerHTML = `
-    <div style="text-align:center;color:white;animation:bounce 0.5s infinite;">
-      <div style="font-size:5rem;">🥦</div>
-      <div style="background:#fbbf24;color:#111;padding:0.6rem 1.2rem;border-radius:10px;margin-top:1rem;font-weight:bold;font-size:1.4rem;">Yendy's Special Reward!!</div>
-      <div style="margin-top:1rem;font-size:2rem;">🎆✨🎉</div>
-    </div>`;
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.remove(), 5000);
+document.getElementById("reset-game")?.addEventListener("click", () => {
+  const dialog = document.getElementById("reset-dialog");
+  if (dialog) dialog.style.display = "flex";
+});
+document.getElementById("reset-cancel")?.addEventListener("click", () => {
+  const dialog = document.getElementById("reset-dialog");
+  if (dialog) dialog.style.display = "none";
+});
+document.getElementById("reset-confirm")?.addEventListener("click", () => {
+  allowSave = false;
+  localStorage.removeItem("garden-club-v1");
+  location.reload();
 });
 
 document.getElementById("time-scale")?.addEventListener("click", (e) => {
@@ -1099,6 +1199,66 @@ document.getElementById("price-list-toggle")?.addEventListener("click", () => {
   el.style.display = open ? "block" : "none";
 });
 
+let allowSave = true;
+function saveGame() {
+  if (!allowSave) return;
+  const data = {
+    coins: state.coins,
+    supportive: state.supportive,
+    trophies: state.trophies,
+    prestigeUpgrades: state.prestigeUpgrades,
+    marketUpgrades: state.marketUpgrades,
+    marketAffected: state.marketAffected,
+    prestigeSeen: state.prestigeSeen,
+    firstNeighborAwarded: state.firstNeighborAwarded,
+    seenFirstPrestige: state.seenFirstPrestige,
+    prestigeCount: state.prestigeCount,
+    yendySpeed: state.yendySpeed,
+    betterSoil: state.betterSoil,
+    globalSpeed: state.globalSpeed,
+    globalSpeedLevels: state.globalSpeedLevels,
+    globalSpeedAffected: state.globalSpeedAffected,
+    hideOwnedHelpful: state.hideOwnedHelpful,
+    upgradeAutobuy: state.upgradeAutobuy,
+    autoPrestigeMin: state.autoPrestigeMin,
+    waitForNextUpgrade: state.waitForNextUpgrade,
+    unlocked: VEGGIES.filter(v => v.unlocked).map(v => v.id),
+    plots: state.plots,
+    upgrades: state.upgrades,
+  };
+  try { localStorage.setItem("garden-club-v1", JSON.stringify(data)); } catch (e) {}
+}
+
+function loadGame() {
+  let data;
+  try { data = JSON.parse(localStorage.getItem("garden-club-v1") || "null"); } catch (e) { return; }
+  if (!data || typeof data !== "object") return;
+  ["coins", "supportive", "trophies", "betterSoil", "globalSpeed", "globalSpeedLevels", "autoPrestigeMin", "prestigeCount"].forEach(key => {
+    if (typeof data[key] === "number" || data[key] === null) state[key] = data[key];
+  });
+  ["prestigeSeen", "firstNeighborAwarded", "seenFirstPrestige", "hideOwnedHelpful", "upgradeAutobuy", "waitForNextUpgrade", "yendySpeed"].forEach(key => {
+    if (typeof data[key] === "boolean") state[key] = data[key];
+  });
+  if (data.prestigeUpgrades) Object.assign(state.prestigeUpgrades, data.prestigeUpgrades);
+  if (data.marketUpgrades) Object.assign(state.marketUpgrades, data.marketUpgrades);
+  if (data.marketAffected) Object.assign(state.marketAffected, data.marketAffected);
+  if (Array.isArray(data.globalSpeedAffected)) state.globalSpeedAffected = data.globalSpeedAffected;
+  if (Array.isArray(data.unlocked)) {
+    VEGGIES.forEach(v => { v.unlocked = v.id === "kale" || data.unlocked.includes(v.id); });
+  }
+  VEGGIES.forEach(v => {
+    if (data.plots && data.plots[v.id]) Object.assign(state.plots[v.id], data.plots[v.id]);
+    if (data.upgrades && data.upgrades[v.id]) Object.assign(state.upgrades[v.id], data.upgrades[v.id]);
+  });
+  if (state.prestigeSeen) state.yendySpeed = true;
+}
+
+window.addEventListener("beforeunload", saveGame);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") saveGame();
+});
+
+loadGame();
 updateUI();
 requestAnimationFrame(loop);
 

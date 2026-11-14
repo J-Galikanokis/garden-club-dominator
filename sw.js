@@ -1,17 +1,11 @@
-const CACHE = "garden-club-v1";
-const FILES = [
-  "./index.html",
-  "./style.css",
-  "./script.js",
-  "./garden-bg.jpg",
-  "./yendy-broccoli.jpg",
-  "./manifest.webmanifest",
-  "./icon-192.png",
-  "./icon-512.png"
-];
+const CACHE = "garden-club-tablet-v3";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES)));
+  event.waitUntil(
+    caches.open(CACHE).then((cache) =>
+      cache.addAll(["./index.html", "./style.css", "./script.js", "./manifest.webmanifest"])
+    )
+  );
   self.skipWaiting();
 });
 
@@ -27,6 +21,12 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE).then((cache) => cache.put(event.request, copy)).catch(() => {});
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

@@ -22,6 +22,7 @@
 
     <div class="stats">
       <div class="stat">
+        <img class="portrait stat-icon" src="art-coin.jpg" alt="">
         <span id="coins">0</span>
         <span class="label">coins</span>
       </div>
@@ -30,6 +31,16 @@
         <button data-scale="2">2×</button>
         <button data-scale="5">5×</button>
         <button data-scale="10">10×</button>
+        <button type="button" id="reset-game">Reset</button>
+      </div>
+    </div>
+    <div id="reset-dialog" class="reset-dialog" style="display:none">
+      <div class="reset-card">
+        <p>Reset the game? This deletes your saved progress.</p>
+        <div class="reset-actions">
+          <button type="button" id="reset-cancel">Cancel</button>
+          <button type="button" id="reset-confirm">Reset</button>
+        </div>
       </div>
     </div>
 
@@ -37,11 +48,12 @@
       <button class="tab active" data-tab="garden">Garden</button>
       <button class="tab" data-tab="upgrades" id="upgrades-tab-btn">Upgrades <span id="upgrades-dot" class="red-dot" style="display:none;"></span></button>
     </div>
+    <p id="prestige-banner" class="prestige-banner" style="display:none">Prestige is available. Open Upgrades, then Supportive Neighbors.</p>
 
     <div id="garden-tab" class="tab-content">
       <div id="plots"></div>
       <div class="section">
-        <h2>Market: Rickety Roadside Stand</h2>
+        <h2 class="with-icon"><img class="portrait" src="art-market.jpg" alt=""> Market: Rickety Roadside Stand</h2>
         <div id="market-upgrades" style="margin-top:0.75rem;"></div>
         <p id="market-info">Sell buttons are per-veggie for now</p>
         <button type="button" id="price-list-toggle" class="tool-btn">Price list</button>
@@ -69,7 +81,7 @@
       <div id="supportive-panel" class="subpanel" style="display:none;">
         <div id="supportive-list"></div>
         <p>Supportive Neighbors: <span id="supportive">0.00</span></p>
-        <p>Trophies: <span id="trophies">0</span></p>
+        <p class="with-icon"><img class="portrait" src="art-trophy.jpg" alt=""> Trophies: <span id="trophies">0</span></p>
         <p>The first prestige unlocks at 2 tomato plants.</p>
         <button type="button" id="prestige-btn" class="prestige" disabled>Prestige</button>
         <p id="prestige-info">Better Soil (2× harvest) available with first trophy</p>
